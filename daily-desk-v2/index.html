@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Desk v2: один торговый день за пять минут</title>
+<meta name="description" content="Короткий анимированный ролик с голосом: как рутины A и B готовят идеи, как бот их проверяет, входит и выходит, что в схеме сильно, слабо и что стоит улучшить.">
+<meta property="og:type" content="video.other">
+<meta property="og:title" content="Daily Desk v2: один торговый день за пять минут">
+<meta property="og:description" content="ИИ думает, бот торгует: разведка утром, решение после первого часа, проверки, вход в зоне, стоп, цель и выход. Плюсы, минусы, рекомендации.">
+<meta property="og:url" content="https://lafootballer.github.io/ludobot-explainers/daily-desk-v2/">
+<meta property="og:image" content="https://lafootballer.github.io/ludobot-explainers/daily-desk-v2/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Ludobot · Daily Desk explainer v2. Same visual language as v1 and the site (dark stage, frog narrator,
+   segmented chapters), but one idea per scene, large type and little text on screen. All text is static. */
+:root {
+  --ink: #0d151e; --stage: #121d29; --panel: #1a2836; --panel2: #22344a; --line: #2b3c4d; --fg: #e7edf3; --muted: #9cafc1;
+  --amber: #f0a43a; --gain: #4cc3a0; --loss: #ee6e5c; --sky: #7ec8f2;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "Golos Text", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { background: var(--ink); color: var(--fg); }
+body { margin: 0; font-family: var(--body); font-size: 16px; line-height: 1.5; padding-inline: 16px; padding-block: 24px 48px; }
+.wrap { max-width: 1080px; margin-inline: auto; display: grid; gap: 14px; }
+header { display: grid; gap: 4px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(20px, 3.2vw, 32px); line-height: 1.18; margin: 0; text-wrap: balance; }
+.lede { color: var(--muted); margin: 0; max-width: 72ch; }
+a { color: var(--amber); }
+
+/* ── stage ───────────────────────────────────────────── */
+.stage { position: relative; aspect-ratio: 16 / 9; width: 100%; background: var(--stage); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; container-type: inline-size; }
+@media (max-width: 640px) { .stage { aspect-ratio: 5 / 7; } }
+.scene {
+  --f-kick: max(1.35cqw, 10.5px); --f-h2: max(3.7cqw, 21px); --f-note: max(1.9cqw, 13px); --f-lg: max(2.3cqw, 15px);
+  --f-md: max(1.85cqw, 13px); --f-sm: max(1.5cqw, 11.5px); --f-xs: max(1.25cqw, 10px);
+  --g: 1.3cqw; --p: 1.5cqw; --r: 1cqw;
+}
+@container (max-width: 640px) {
+  .scene {
+    --f-kick: max(2.9cqw, 10.5px); --f-h2: max(6.4cqw, 21px); --f-note: max(3.6cqw, 13px); --f-lg: max(4.4cqw, 15px);
+    --f-md: max(3.7cqw, 13px); --f-sm: max(3.25cqw, 11.5px); --f-xs: max(2.8cqw, 10px);
+    --g: 2.2cqw; --p: 2.8cqw; --r: 1.8cqw;
+  }
+}
+
+.scene { position: absolute; inset: 0; display: grid; grid-template-columns: .8fr 1.2fr; column-gap: 4cqw; align-items: center; padding: 4.5cqw 5cqw; visibility: hidden; opacity: 0; transition: opacity .5s ease; }
+.scene.on { visibility: visible; opacity: 1; }
+.scene.wide { grid-template-columns: 1fr; grid-template-rows: auto 1fr; row-gap: 2.2cqw; align-items: start; }
+.scene.wide .vis { align-self: center; }
+@container (max-width: 640px) {
+  .scene, .scene.wide { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-items: start; padding: 6cqw 5cqw 5cqw; row-gap: 4cqw; }
+  .scene .vis { align-self: center; }
+  .note { display: none; }
+}
+.txt { display: grid; gap: 1.4cqw; min-width: 0; }
+.kicker { font-family: var(--mono); font-weight: 600; font-size: var(--f-kick); letter-spacing: .1em; text-transform: uppercase; color: var(--amber); }
+.scene h2 { font-family: var(--display); font-weight: 700; font-size: var(--f-h2); line-height: 1.12; margin: 0; text-wrap: balance; overflow-wrap: break-word; }
+.note { margin: 0; font-size: var(--f-note); color: var(--muted); line-height: 1.45; }
+.vis { min-width: 0; width: 100%; display: grid; gap: var(--g); align-content: center; }
+.say { display: none; }
+
+/* step reveal: an element shows when the narration reaches its line */
+.scene [data-s] { opacity: 0; transform: translateY(1.2cqw); transition: opacity .6s ease, transform .6s cubic-bezier(.2, .7, .2, 1); }
+.scene [data-s].in { opacity: 1; transform: none; }
+.scene svg [data-s], .scene .pct[data-s] { transform: none; }
+
+/* ── shared pieces ──────────────────────────────────── */
+.ic { width: 1.1em; height: 1.1em; vertical-align: -.17em; flex: none; }
+.tag { display: inline-block; font: 600 var(--f-xs)/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: .45cqw 1cqw; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); white-space: nowrap; justify-self: start; }
+.tag.ok { color: var(--gain); border-color: var(--gain); }
+.tag.bad { color: var(--loss); border-color: var(--loss); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: var(--p) calc(var(--p) * 1.2); display: grid; gap: .5cqw; min-width: 0; }
+.card > b { font-size: var(--f-md); font-weight: 600; line-height: 1.25; }
+.card > b .ic { color: var(--amber); }
+.card > span { color: var(--muted); font-size: var(--f-sm); line-height: 1.35; }
+.banner { margin: 0; display: flex; gap: .9cqw; align-items: center; background: var(--panel2); border-radius: var(--r); padding: var(--p) calc(var(--p) * 1.3); font-size: var(--f-md); font-weight: 600; line-height: 1.3; }
+.banner .ic { color: var(--amber); }
+.banner.soft { background: none; border: 1px dashed var(--line); font-weight: 500; color: var(--muted); }
+.pill { margin: 0; justify-self: start; display: inline-flex; gap: .7cqw; align-items: center; border: 1px solid var(--line); border-radius: 99px; padding: .6cqw 1.4cqw; font-size: var(--f-sm); color: var(--muted); }
+.pill .ic { color: var(--sky); }
+.mini { margin: 0; font-size: var(--f-sm); color: var(--muted); line-height: 1.4; }
+.mini.fin { text-align: center; }
+.chips { display: flex; flex-wrap: wrap; gap: var(--g); justify-content: center; }
+.chip { background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: .7cqw 1.5cqw; font-size: var(--f-sm); line-height: 1.3; }
+
+/* big result number */
+.result { display: grid; justify-items: start; gap: .2cqw; background: var(--panel); border: 1px solid var(--line); border-left: .6cqw solid var(--amber); border-radius: var(--r); padding: var(--p) calc(var(--p) * 1.3); }
+.result b { font-family: var(--display); font-size: calc(var(--f-h2) * 1.05); line-height: 1; color: var(--amber); }
+.result span { font-size: var(--f-md); color: var(--fg); }
+
+/* flow: nodes with arrows */
+.flow { display: grid; align-items: center; gap: var(--g); }
+.flow.f4 { grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; }
+.flow.f6 { grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr auto 1fr auto 1fr; gap: .8cqw; }
+.node { display: grid; justify-items: center; text-align: center; gap: .5cqw; background: var(--panel); border: 1px solid var(--line); border-top: .45cqw solid var(--muted); border-radius: var(--r); padding: var(--p) .8cqw calc(var(--p) * 1.1); min-width: 0; height: 100%; align-content: start; }
+.node .ico { width: 4.2cqw; height: 4.2cqw; color: var(--muted); }
+.node b { font-size: var(--f-md); font-weight: 600; line-height: 1.2; }
+.node span { font-size: var(--f-sm); color: var(--muted); line-height: 1.3; }
+.node.ai { border-top-color: var(--amber); } .node.ai .ico { color: var(--amber); }
+.node.code { border-top-color: var(--sky); } .node.code .ico { color: var(--sky); }
+.node.ext .ico { color: var(--gain); }
+.flow.f6 .node { padding-inline: .5cqw; }
+.flow.f6 .node .ico { width: 3.4cqw; height: 3.4cqw; }
+.flow.f6 .node b { font-size: var(--f-sm); }
+.flow.f6 .node span { font-size: var(--f-xs); }
+.arr { display: block; width: 2.4cqw; height: .3cqw; position: relative; color: var(--muted); background: repeating-linear-gradient(90deg, currentColor 0 .6cqw, transparent .6cqw 1.2cqw); background-size: 1.2cqw 100%; animation: flowr .9s linear infinite; }
+.arr::after { content: ""; position: absolute; right: -.3cqw; top: 50%; margin-top: -.65cqw; border-style: solid; border-width: .65cqw 0 .65cqw 1cqw; border-color: transparent transparent transparent currentColor; }
+.flow.f6 .arr { width: 1.4cqw; }
+@keyframes flowr { to { background-position: 1.2cqw 0; } }
+@keyframes flowd { to { background-position: 0 1.2cqw; } }
+@container (max-width: 640px) {
+  .flow.f4, .flow.f6 { grid-template-columns: 1fr; justify-items: stretch; gap: 1.6cqw; }
+  .node { grid-template-columns: auto 1fr; grid-template-rows: auto auto; justify-items: start; text-align: left; column-gap: 3cqw; row-gap: .4cqw; padding: 2.2cqw 3cqw; border-top-width: 1px; border-left: 1.2cqw solid var(--muted); }
+  .node .ico { grid-row: span 2; width: 8cqw; height: 8cqw; align-self: center; }
+  .node.ai { border-left-color: var(--amber); } .node.code { border-left-color: var(--sky); } .node.ext { border-left-color: var(--gain); }
+  .flow.f6 { gap: 1cqw; }
+  .flow.f6 .node { padding: 1.1cqw 3cqw; }
+  .flow.f6 .node .ico { width: 6cqw; height: 6cqw; }
+  .flow.f6 .node b { font-size: var(--f-md); }
+  .flow.f6 .node span { font-size: var(--f-sm); }
+  .arr, .flow.f6 .arr { justify-self: center; width: .6cqw; height: 3.4cqw; background: repeating-linear-gradient(180deg, currentColor 0 1cqw, transparent 1cqw 2cqw); background-size: 100% 2cqw; animation-name: flowd; }
+  .arr::after { right: auto; left: 50%; top: auto; bottom: -.6cqw; margin: 0 0 0 -1.3cqw; border-width: 1.6cqw 1.3cqw 0 1.3cqw; border-color: currentColor transparent transparent transparent; }
+  .flow.f6 .arr { height: 1.6cqw; }
+}
+
+/* 2 · before / after */
+.vs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--g); }
+.side { display: grid; gap: .8cqw; align-content: start; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: calc(var(--p) * 1.2); }
+.side.bad { border-top: .45cqw solid var(--loss); } .side.good { border-top: .45cqw solid var(--gain); }
+.side > b { font-size: var(--f-lg); line-height: 1.2; }
+.side > span { font-size: var(--f-sm); color: var(--muted); }
+.verdict { font-style: normal; font-size: var(--f-sm); font-weight: 600; line-height: 1.3; display: flex; gap: .6cqw; align-items: start; margin-top: .4cqw; }
+.verdict.bad { color: var(--loss); } .verdict.ok { color: var(--gain); }
+@container (max-width: 640px) { .vs { grid-template-columns: 1fr; } }
+
+/* 3 · day timeline */
+.tl { list-style: none; margin: 0; padding: 0; display: grid; gap: .9cqw; position: relative; }
+.tl li { display: grid; grid-template-columns: 13.5cqw 3.6cqw 1fr; gap: 1.4cqw; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: .9cqw 1.4cqw; }
+.tl time { font: 600 var(--f-md)/1.1 var(--mono); color: var(--fg); white-space: nowrap; }
+.tl .who { display: grid; place-items: center; width: 3.6cqw; height: 3.6cqw; border-radius: 50%; font: 700 var(--f-md)/1 var(--display); color: var(--muted); }
+.tl .who.ai { background: var(--amber); color: #1a1205; }
+.tl .who.code { background: var(--sky); color: #08202e; }
+.tl li div { display: grid; gap: .1cqw; min-width: 0; }
+.tl li b { font-size: var(--f-md); font-weight: 600; line-height: 1.2; }
+.tl li span:not(.who) { font-size: var(--f-sm); color: var(--muted); line-height: 1.3; }
+.tl li.dim { background: none; border-style: dashed; padding-block: .5cqw; }
+.tl li.dim b { color: var(--muted); font-weight: 500; }
+.tl li.hot { border-color: var(--sky); box-shadow: 0 0 0 .3cqw rgba(126, 200, 242, .14); }
+.days { display: flex; flex-wrap: wrap; gap: .8cqw; align-items: center; }
+.days .d { font: 600 var(--f-sm)/1 var(--mono); padding: .6cqw 1.1cqw; border-radius: 99px; border: 1px solid var(--line); }
+.days .d.ok { color: var(--gain); border-color: var(--gain); }
+.days .d.no { color: var(--loss); border-color: var(--loss); text-decoration: line-through; }
+.days em { font-style: normal; font-size: var(--f-sm); color: var(--muted); margin-left: .6cqw; }
+@container (max-width: 640px) {
+  .tl { gap: 1.6cqw; }
+  .tl li { grid-template-columns: 21cqw 7cqw 1fr; gap: 2.4cqw; padding: 1.8cqw 2.6cqw; }
+  .tl time { white-space: normal; }
+  .tl .who { width: 7cqw; height: 7cqw; }
+  .days { gap: 1.6cqw; }
+  .days .d { padding: 1.2cqw 2.2cqw; }
+}
+
+/* 4 · tickers */
+.tickers { display: flex; flex-wrap: wrap; gap: .6cqw; margin-top: .4cqw; }
+.tickers i, .cands i { font: 600 var(--f-xs)/1 var(--mono); font-style: normal; padding: .5cqw .9cqw; border-radius: .5cqw; background: var(--panel2); color: var(--fg); }
+
+/* 5 · funnel */
+.funnel { display: grid; grid-template-columns: 12cqw auto 1fr auto 17cqw; gap: var(--g); align-items: center; }
+.cands { display: grid; gap: .6cqw; justify-items: center; }
+.cands .lbl { font-size: var(--f-xs); color: var(--muted); text-align: center; line-height: 1.2; }
+.cands i { width: 100%; text-align: center; padding-block: .7cqw; }
+.qs { margin: 0; padding: 0; list-style: none; display: grid; gap: .8cqw; counter-reset: q; }
+.qs li { counter-increment: q; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 1cqw 1.3cqw; font-size: var(--f-md); line-height: 1.25; display: flex; gap: 1cqw; align-items: center; }
+.qs li::before { content: counter(q); display: grid; place-items: center; flex: none; width: 2.6cqw; height: 2.6cqw; border-radius: 50%; background: var(--panel2); font: 600 var(--f-sm)/1 var(--mono); color: var(--amber); }
+.funnel .result { justify-items: center; text-align: center; }
+@container (max-width: 640px) {
+  .funnel { grid-template-columns: 1fr; justify-items: stretch; gap: 2cqw; }
+  .cands { grid-auto-flow: column; grid-template-columns: auto repeat(5, 1fr); align-items: center; }
+  .cands .lbl { max-width: 16cqw; }
+  .funnel .arr { justify-self: center; }
+  .qs { gap: 1.6cqw; }
+  .qs li { padding: 2cqw 2.6cqw; gap: 2cqw; }
+  .qs li::before { width: 6cqw; height: 6cqw; }
+  .funnel .result { grid-template-columns: auto 1fr; align-items: center; column-gap: 3cqw; justify-items: start; text-align: left; }
+}
+
+/* 6 · idea card */
+.idea { background: var(--panel); border: 1px solid var(--line); border-top: .45cqw solid var(--amber); border-radius: var(--r); padding: calc(var(--p) * 1.2) calc(var(--p) * 1.5); display: grid; gap: 1.1cqw; }
+.ihead { display: flex; gap: 1.2cqw; align-items: center; }
+.ihead b { font: 700 calc(var(--f-h2) * .9)/1 var(--display); }
+.ihead em { margin-left: auto; font-style: normal; font: 600 var(--f-xs)/1 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.irow { display: grid; grid-template-columns: 13cqw 1fr auto; gap: 1.2cqw; align-items: baseline; border-top: 1px solid var(--line); padding-top: 1cqw; }
+.irow > span { font-size: var(--f-sm); color: var(--muted); }
+.irow > b { font: 600 var(--f-lg)/1.2 var(--mono); }
+.irow > i { font-size: var(--f-md); color: var(--fg); }
+.irow > em { font-style: normal; font-size: var(--f-xs); color: var(--muted); white-space: nowrap; }
+.irow > em.code { color: var(--sky); font-weight: 600; font-size: var(--f-sm); }
+.irow.off > b { color: var(--muted); font-family: var(--body); font-size: var(--f-md); text-decoration: line-through; text-decoration-color: var(--loss); text-decoration-thickness: 2px; }
+@container (max-width: 640px) {
+  .irow { grid-template-columns: 1fr auto; row-gap: .6cqw; padding-top: 1.8cqw; }
+  .irow > span { grid-column: 1 / -1; }
+  .irow > i { grid-column: 1 / -1; }
+  .idea { gap: 1.8cqw; }
+}
+
+/* 7 · outcomes */
+.outcomes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--g); }
+.out { margin: 0; display: flex; gap: .8cqw; align-items: center; justify-content: center; border-radius: var(--r); padding: 1.1cqw 1.4cqw; font-size: var(--f-md); font-weight: 600; background: var(--panel); border: 1px solid var(--line); }
+.out.ok { color: var(--gain); border-color: rgba(76, 195, 160, .5); }
+.out.bad { color: var(--loss); border-color: rgba(238, 110, 92, .5); }
+@container (max-width: 640px) { .outcomes { grid-template-columns: 1fr; gap: 1.6cqw; } .out { padding: 2cqw; justify-content: start; } }
+
+/* 8 · entry chart */
+.chart { width: 100%; height: auto; max-height: 30cqw; overflow: visible; font-family: var(--body); }
+.chart text { font-size: 17px; fill: var(--muted); }
+.chart .zone rect { fill: rgba(240, 164, 58, .16); stroke: var(--amber); stroke-dasharray: 5 5; }
+.chart .zone text { fill: var(--amber); font-weight: 600; }
+.chart .scans line { stroke: var(--line); stroke-width: 2; }
+.chart .scans circle { fill: var(--panel2); stroke: var(--muted); stroke-width: 2; }
+.chart .price { fill: none; stroke: var(--fg); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.chart .price.in { stroke-dashoffset: 0; transition: stroke-dashoffset 2.6s ease .2s, opacity .3s; }
+.chart .entry circle { fill: var(--amber); stroke: var(--stage); stroke-width: 3; }
+.chart .entry text { fill: var(--amber); font-weight: 600; font-size: 19px; }
+.chart .entry { transition-delay: 1.8s; }
+.chart .deadline line { stroke: var(--loss); stroke-width: 2; stroke-dasharray: 6 6; }
+.chart .deadline text { fill: var(--loss); font-weight: 600; }
+.chart .lvl line { stroke-width: 2.5; stroke-dasharray: 10 7; }
+.chart .lvl text { font-weight: 600; font-size: 19px; }
+.chart .tp line { stroke: var(--gain); } .chart .tp text { fill: var(--gain); }
+.chart .sl line { stroke: var(--loss); } .chart .sl text { fill: var(--loss); }
+.chart .dist line, .chart .dist path { stroke: var(--sky); stroke-width: 2.5; fill: none; }
+.chart .dist text { fill: var(--sky); font-weight: 600; }
+@container (max-width: 640px) {
+  .chart { max-height: none; }
+  .chart text { font-size: 24px; }
+  .chart .entry text, .chart .lvl text { font-size: 25px; }
+  .chart .dist text { display: none; }
+  .chips { gap: 1.4cqw; }
+  .chip { padding: 1.2cqw 2.4cqw; }
+}
+
+/* 9 · exits */
+.exits { display: grid; gap: 1.2cqw; }
+.ex { display: grid; grid-template-columns: 15cqw 1fr 6cqw; grid-template-areas: "lbl bar pct"; gap: 1.4cqw; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 1.3cqw 1.6cqw; }
+.ex b { grid-area: lbl; font-size: var(--f-md); font-weight: 600; white-space: nowrap; }
+.ex .pct { grid-area: pct; font: 700 var(--f-lg)/1 var(--display); text-align: right; }
+.ex .bar { grid-area: bar; display: block; height: 1.6cqw; border-radius: 99px; background: var(--panel2); overflow: hidden; }
+.ex .fill { display: block; height: 100%; width: 0; border-radius: 99px; transition: width 1.4s cubic-bezier(.2, .7, .2, 1) .2s; }
+.scene[data-step="2"] .ex .fill, .scene[data-step="3"] .ex .fill, .scene[data-step="99"] .ex .fill { width: var(--w); }
+.ex.sl .fill { background: var(--loss); } .ex.sl .pct { color: var(--loss); }
+.ex.tp .fill { background: var(--gain); } .ex.tp .pct { color: var(--gain); }
+.ex.tm .fill { background: var(--sky); } .ex.tm .pct { color: var(--sky); }
+.ex.tm { border-color: var(--sky); }
+@container (max-width: 640px) {
+  .exits { gap: 2cqw; }
+  .ex { grid-template-columns: 1fr auto; grid-template-areas: "lbl pct" "bar bar"; row-gap: 1.6cqw; padding: 2.4cqw 3cqw; }
+  .ex .bar { height: 2.6cqw; }
+}
+
+/* 10 · layers */
+.layers { list-style: none; margin: 0; padding: 0; display: grid; gap: .8cqw; justify-items: center; }
+.layers li { display: grid; gap: .2cqw; justify-items: center; text-align: center; border-radius: var(--r); padding: 1.1cqw 1.6cqw; background: var(--panel); border: 1px solid var(--line); }
+.layers b { font-size: var(--f-md); font-weight: 600; line-height: 1.2; }
+.layers span { font-size: var(--f-sm); color: var(--muted); }
+.layers .l4 { width: 100%; border-color: var(--amber); background: rgba(240, 164, 58, .1); }
+.layers .l3 { width: 86%; border-color: rgba(240, 164, 58, .55); }
+.layers .l2 { width: 72%; }
+.layers .l1 { width: 58%; border-color: var(--sky); }
+@container (max-width: 640px) {
+  .layers { gap: 1.6cqw; }
+  .layers li { padding: 2cqw 2.6cqw; }
+  .layers .l3 { width: 92%; } .layers .l2 { width: 84%; } .layers .l1 { width: 76%; }
+}
+
+/* 11 · race and milestones */
+.race { display: grid; gap: 1.2cqw; }
+.lane { display: grid; grid-template-columns: 19cqw 1fr 7cqw; gap: 1.4cqw; align-items: center; }
+.lane span { font-size: var(--f-md); font-weight: 600; line-height: 1.2; }
+.lane b { font: 700 var(--f-md)/1 var(--display); text-align: right; }
+.lane .track { display: block; height: 2cqw; border-radius: 99px; background: var(--panel2); overflow: hidden; position: relative; }
+.lane .run { display: block; height: 100%; border-radius: 99px; width: 0; transition: width 2s cubic-bezier(.2, .7, .2, 1) .3s; }
+.race.in .lane.base .run { width: 52%; }
+.race.in .lane.ai .run { width: 52%; animation: guess 3.2s ease-in-out 2.3s infinite alternate; }
+.lane.ai .run { background: repeating-linear-gradient(90deg, var(--amber) 0 1.2cqw, rgba(240, 164, 58, .45) 1.2cqw 2.4cqw); }
+.lane.ai b { color: var(--amber); }
+.lane.base .run { background: var(--muted); }
+.lane.base b { color: var(--muted); font-size: var(--f-sm); }
+@keyframes guess { from { width: 36%; } to { width: 68%; } }
+.miles { display: grid; grid-template-columns: 1fr 1fr; gap: var(--g); }
+.mile { display: grid; grid-template-columns: auto 1fr; gap: 1.2cqw; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 1.2cqw 1.5cqw; }
+.mile b { font: 700 calc(var(--f-h2) * .95)/1 var(--display); color: var(--amber); }
+.mile span { font-size: var(--f-sm); line-height: 1.3; }
+@container (max-width: 640px) {
+  .lane { grid-template-columns: 1fr auto; grid-template-areas: "name val" "track track"; row-gap: 1.2cqw; }
+  .lane span { grid-area: name; } .lane b { grid-area: val; } .lane .track { grid-area: track; height: 3.4cqw; }
+  .race { gap: 2.6cqw; }
+  .miles { grid-template-columns: 1fr; gap: 1.6cqw; }
+  .mile { padding: 2.2cqw 2.8cqw; gap: 3cqw; }
+}
+
+/* 12 · pros and cons */
+.pc { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--g) * 1.4); }
+.pc .col { list-style: none; margin: 0; padding: 0; display: grid; gap: 1cqw; align-content: start; }
+.pc li { position: relative; display: grid; gap: .2cqw; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 1.2cqw 1.5cqw 1.2cqw 4.6cqw; }
+.pc li::before { position: absolute; left: 1.4cqw; top: 1.05cqw; width: 2.3cqw; height: 2.3cqw; border-radius: 50%; display: grid; place-items: center; font: 700 var(--f-md)/1 var(--display); }
+.pc .plus li::before { content: "+"; background: rgba(76, 195, 160, .18); color: var(--gain); }
+.pc .minus li::before { content: "−"; background: rgba(238, 110, 92, .18); color: var(--loss); }
+.pc li b { font-size: var(--f-md); font-weight: 600; line-height: 1.25; }
+.pc li span { font-size: var(--f-sm); color: var(--muted); line-height: 1.3; }
+@container (max-width: 640px) {
+  .pc { grid-template-columns: 1fr; gap: 1.4cqw; }
+  .pc .col { gap: 1.4cqw; }
+  .pc li { padding: 1.6cqw 2.4cqw 1.6cqw 10cqw; }
+  .pc li::before { left: 2.4cqw; top: 1.7cqw; width: 5.6cqw; height: 5.6cqw; }
+  .pc li span { display: none; }
+}
+
+/* 13 · recommendations */
+.recs { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.2cqw; counter-reset: r; }
+.recs li { counter-increment: r; position: relative; display: grid; gap: .3cqw; background: var(--panel); border: 1px solid var(--line); border-left: .6cqw solid var(--amber); border-radius: var(--r); padding: 1.4cqw 1.6cqw 1.4cqw 6.2cqw; }
+.recs li::before { content: counter(r); position: absolute; left: 1.6cqw; top: 50%; transform: translateY(-50%); font: 700 calc(var(--f-h2) * .9)/1 var(--display); color: var(--amber); }
+.recs b { font-size: var(--f-md); font-weight: 600; line-height: 1.25; }
+.recs span { font-size: var(--f-sm); color: var(--muted); line-height: 1.3; }
+@container (max-width: 640px) {
+  .recs { gap: 2cqw; }
+  .recs li { padding: 2.4cqw 2.8cqw 2.4cqw 12cqw; }
+  .recs li::before { left: 3cqw; }
+}
+
+/* ── narrator, controls, chapters ──────────────────── */
+.paused .scene, .paused .scene * { animation-play-state: paused !important; }
+.narrator { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+.frog { width: clamp(68px, 10vw, 104px); height: auto; overflow: visible; }
+.bubble { position: relative; margin: 0; min-height: 3.2em; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; font-size: clamp(16px, 2vw, 20px); line-height: 1.45; text-wrap: pretty; }
+.bubble::before { content: ""; position: absolute; left: -8px; top: 50%; width: 14px; height: 14px; background: var(--panel); border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: translateY(-50%) rotate(45deg); }
+.frog [data-e], .frog .talk { display: none; }
+.frog[data-emotion="bored"] [data-e="bored"], .frog[data-emotion="happy"] [data-e="happy"],
+.frog[data-emotion="shocked"] [data-e="shocked"], .frog[data-emotion="sad"] [data-e="sad"] { display: inline; }
+.frog.talking .mouth { display: none; }
+.frog.talking .talk { display: inline; }
+.frog-body { transform-box: fill-box; transform-origin: center bottom; animation: bob 2.8s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-5px) scaleY(1.02); } }
+.frog .blink ellipse { transform-box: fill-box; transform-origin: center top; transform: scaleY(0); animation: blink 5s infinite; }
+@keyframes blink { 0%, 93%, 100% { transform: scaleY(0); } 96% { transform: scaleY(1); } }
+.frog .talk { transform-box: fill-box; transform-origin: center; animation: talk .26s ease-in-out infinite alternate; }
+@keyframes talk { from { transform: scaleY(.2) scaleX(.85); } to { transform: scaleY(1) scaleX(1); } }
+.frog .drop { animation: drip 1.6s ease-in infinite; }
+@keyframes drip { 0% { transform: translateY(-6px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(14px); opacity: 0; } }
+.frog.hello .wave { transform-box: fill-box; transform-origin: left center; animation: wave .5s ease-in-out 3 alternate; }
+@keyframes wave { to { transform: translate(18px, -60px) rotate(-40deg); } }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button, select { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; min-height: 40px; }
+button { display: inline-flex; gap: 8px; align-items: center; }
+button:hover, select:hover { border-color: var(--muted); }
+button:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+button svg { width: 18px; height: 18px; fill: currentColor; }
+#sound[aria-pressed="true"] { border-color: var(--amber); color: var(--amber); }
+select { padding-inline: 8px; max-width: 220px; }
+.where { margin-left: auto; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.note-small { font-size: 13px; color: var(--muted); margin: 0; max-width: 90ch; }
+.chapters { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; }
+.chapters button { display: grid; gap: 6px; padding: 0; min-height: 0; background: none; border: 0; text-align: left; font-size: 11px; color: var(--muted); border-radius: 3px; }
+.chapters .seg { height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.chapters .seg i { display: block; height: 100%; width: 0; background: var(--amber); }
+.chapters button.done .seg i { width: 100%; }
+.chapters button[aria-current="true"] { color: var(--fg); }
+.chapters .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 1000px) { .chapters .lbl { display: none; } .chapters button { padding-block: 8px; } }
+details { border-top: 1px solid var(--line); padding-top: 12px; }
+summary { cursor: pointer; font-weight: 600; }
+.transcript { display: grid; gap: 12px; margin-top: 12px; max-width: 72ch; }
+.transcript h3 { margin: 0; font-size: 15px; font-family: var(--mono); color: var(--amber); font-weight: 600; }
+.transcript p { margin: 0; color: var(--muted); }
+
+/* enable-voice call to action under the stage */
+.cta { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 4px 10px; width: 100%; background: var(--amber); color: #1a1205; border: 0; border-radius: 8px; padding: 10px 14px; font: 600 15px/1.2 var(--body); animation: ctaPulse 2.4s ease-out infinite; }
+.cta:hover { background: #ffb84f; }
+.cta svg { width: 20px; height: 20px; }
+.cta small { font-size: 12px; font-weight: 500; opacity: .8; }
+@keyframes ctaPulse { 0% { box-shadow: 0 0 0 0 rgba(240, 164, 58, .55); } 70%, 100% { box-shadow: 0 0 0 10px rgba(240, 164, 58, 0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .scene [data-s] { transform: none !important; }
+  .scene, .scene [data-s], .ex .fill, .lane .run, .chart .price { transition-duration: .01s !important; transition-delay: 0s !important; }
+  .arr, .frog *, .cta, .lane .run { animation: none !important; }
+  .frog .blink ellipse { transform: scaleY(0); }
+}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-brain" viewBox="0 0 24 24"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 3 3h1V4zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-3 3h-1V4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 9H8m6 0h2m-6 6H8m6 0h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3v4h4M9 12h6M9 16h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 4v4M2 13v2M22 13v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="13" r="1.5" fill="currentColor"/><circle cx="15" cy="13" r="1.5" fill="currentColor"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 20h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 16l5-5 4 3 7-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M15 15l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.6 4.6L19 7.6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.4"/></symbol>
+    <symbol id="i-board" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 21h8M12 18v3M7 9h6M7 13h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M6 20h12M5 8h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 8l-2.5 6h5zM19 8l-2.5 6h5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+<noscript><p style="padding:16px">Ролику нужен JavaScript.</p></noscript>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Ludobot · Daily Desk · ролик v2 · 07.10.2026</span>
+    <h1>Daily Desk: один торговый день за пять минут</h1>
+    <p class="lede">Короче и проще первой версии: как две рутины на ИИ готовят идеи, как бот их проверяет и торгует и что в этой схеме стоит улучшить. Ролик идёт сам, голос — из вашего браузера. <a href="../daily-desk/">Подробная первая версия</a>.</p>
+  </header>
+  <div class="stage" id="stage">
+
+    <!-- 1 · старт -->
+    <section class="scene" data-chapter="Старт" data-frog="happy">
+      <div class="txt">
+        <span class="kicker">Ludobot · Daily Desk</span>
+        <h2>ИИ думает, бот&nbsp;торгует</h2>
+        <p class="note">Один торговый день: от утренней разведки до выхода из сделки.</p>
+      </div>
+      <div class="vis">
+        <div class="flow f4">
+          <div class="node ai" data-s="2"><svg class="ico" aria-hidden="true"><use href="#i-brain"/></svg><b>ИИ</b><span>читает новости, пишет план</span></div>
+          <i class="arr" data-s="2" aria-hidden="true"></i>
+          <div class="node" data-s="2"><svg class="ico" aria-hidden="true"><use href="#i-doc"/></svg><b>План</b><span>0–3 идеи на день</span></div>
+          <i class="arr" data-s="2" aria-hidden="true"></i>
+          <div class="node code" data-s="2"><svg class="ico" aria-hidden="true"><use href="#i-bot"/></svg><b>Бот</b><span>проверяет и торгует</span></div>
+          <i class="arr" data-s="2" aria-hidden="true"></i>
+          <div class="node ext" data-s="2"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><b>Биржа</b><span>Hyperliquid, акции США</span></div>
+        </div>
+      </div>
+      <div class="say">
+        <p data-say="Это Дейли деск, эксперимент Людобота с акциями США.">Это Daily Desk — эксперимент Ludobot с акциями США.</p>
+        <p>Идея простая. Искусственный интеллект читает новости и пишет план. Бот проверяет план и торгует по жёстким правилам.</p>
+        <p>Пройдём один торговый день: от утра до выхода из сделки.</p>
+      </div>
+    </section>
+
+    <!-- 2 · зачем -->
+    <section class="scene" data-chapter="Зачем" data-frog="shocked">
+      <div class="txt">
+        <span class="kicker">Зачем так</span>
+        <h2>Почему ИИ не&nbsp;торгует сам</h2>
+      </div>
+      <div class="vis">
+        <div class="vs">
+          <div class="side bad" data-s="1">
+            <span class="tag bad">Раньше</span>
+            <b>ИИ внутри бота</b>
+            <span>решение каждые 30 минут</span>
+            <em class="verdict bad"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>входы хуже случайных</em>
+          </div>
+          <div class="side good" data-s="2">
+            <span class="tag ok">Теперь</span>
+            <b>ИИ отдельно от денег</b>
+            <span>одно спокойное решение утром</span>
+            <em class="verdict ok"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>цены, размер и выход считает код</em>
+          </div>
+        </div>
+        <p class="banner" data-s="3"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>У ИИ нет ключей и права ставить ордера. План&nbsp;— это просто текст.</p>
+      </div>
+      <div class="say">
+        <p>Раньше модель решала прямо в боте, каждые полчаса. По замерам её входы оказались хуже случайных.</p>
+        <p>Теперь модель думает один раз за утро, спокойно и с доступом в интернет. А всё, что касается денег, делает код.</p>
+        <p>У ИИ нет ключей и нет права ставить ордера. Его план — просто текст с идеями.</p>
+      </div>
+    </section>
+
+    <!-- 3 · день -->
+    <section class="scene" data-chapter="День" data-frog="happy">
+      <div class="txt">
+        <span class="kicker">Время Нью-Йорка</span>
+        <h2>Один торговый день</h2>
+      </div>
+      <div class="vis">
+        <ol class="tl">
+          <li data-s="2"><time>08:20</time><span class="who ai">A</span><div><b>Разведка</b><span>до открытия биржи</span></div></li>
+          <li class="dim" data-s="3"><time>09:30</time><span class="who"></span><div><b>Открытие биржи</b></div></li>
+          <li data-s="3"><time>10:00</time><span class="who ai">B</span><div><b>Решение</b><span>после первого часа торгов</span></div></li>
+          <li class="hot" data-s="4"><time>10:30–14:30</time><span class="who code"><svg class="ic" aria-hidden="true"><use href="#i-bot"/></svg></span><div><b>Бот может войти</b><span>если цена в зоне идеи</span></div></li>
+          <li data-s="4"><time>+24 ч</time><span class="who"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg></span><div><b>Выход по таймеру</b><span>если раньше не сработали стоп или цель</span></div></li>
+        </ol>
+        <div class="days" data-s="5">
+          <span class="d ok">Пн</span><span class="d ok">Вт</span><span class="d ok">Ср</span><span class="d ok">Чт</span><span class="d no">Пт</span>
+          <em>без позиций на выходных</em>
+        </div>
+      </div>
+      <div class="say">
+        <p data-say="Всё время в ролике нью-йоркское.">Всё время в ролике — нью-йоркское.</p>
+        <p data-say="В восемь двадцать, до открытия биржи, работает рутина А. Это разведка.">В 8:20, до открытия биржи, работает рутина A. Это разведка.</p>
+        <p data-say="В десять рутина Бэ смотрит на первый час торгов и принимает решение.">В 10:00 рутина B смотрит на первый час торгов и принимает решение.</p>
+        <p data-say="С десяти тридцати до четырнадцати тридцати бот может войти в сделку. Выход через сутки, если раньше не сработали стоп или цель.">С 10:30 до 14:30 бот может войти в сделку. Выход — через сутки, если раньше не сработали стоп или цель.</p>
+        <p>Входы только с понедельника по четверг, чтобы позиция не висела на выходных.</p>
+      </div>
+    </section>
+
+    <!-- 4 · рутина A -->
+    <section class="scene" data-chapter="Рутина A" data-frog="bored">
+      <div class="txt">
+        <span class="kicker">08:20 · рутина A</span>
+        <h2>Утренняя разведка</h2>
+      </div>
+      <div class="vis">
+        <p class="pill" data-s="1"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>ничего не торгует и ничего не отправляет боту</p>
+        <div class="card" data-s="2"><b><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg> Общая картина</b><span>экономика, выступления ФРС</span></div>
+        <div class="card" data-s="3">
+          <b><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg> Восемь акций</b>
+          <span>свежие новости, отчёты, официальные документы</span>
+          <div class="tickers"><i>SPCX</i><i>MU</i><i>GOOGL</i><i>SNDK</i><i>META</i><i>AMD</i><i>TSLA</i><i>INTC</i></div>
+        </div>
+        <div class="result ai" data-s="4"><b>до 5</b><span>кандидатов на сегодня</span></div>
+      </div>
+      <div class="say">
+        <p>Рутина А занимается разведкой. Она ничего не торгует и ничего не отправляет боту.</p>
+        <p>Сначала общая картина: экономика и выступления ФРС.</p>
+        <p>Потом каждая из восьми акций: свежие новости, отчёты, официальные документы. Дату новости рутина сверяет на самой странице.</p>
+        <p>Итог разведки: до пяти кандидатов на сегодня.</p>
+      </div>
+    </section>
+
+    <!-- 5 · рутина B -->
+    <section class="scene wide" data-chapter="Рутина B" data-frog="happy">
+      <div class="txt">
+        <span class="kicker">10:00 · рутина B</span>
+        <h2>Решение после первого часа</h2>
+      </div>
+      <div class="vis">
+        <div class="funnel">
+          <div class="cands" data-s="1"><span class="lbl">кандидаты от A</span><i>MU</i><i>AMD</i><i>TSLA</i><i>META</i><i>SNDK</i></div>
+          <i class="arr" data-s="2" aria-hidden="true"></i>
+          <ol class="qs" data-s="2">
+            <li>Рынок подтвердил идею?</li>
+            <li>Что говорит против?</li>
+            <li>Чем лучше покупки всех восьми?</li>
+          </ol>
+          <i class="arr" data-s="3" aria-hidden="true"></i>
+          <div class="result ai" data-s="3"><b>0–3</b><span>идеи в плане</span></div>
+        </div>
+        <p class="banner soft" data-s="3">Пустой план с причиной&nbsp;— тоже нормальный ответ.</p>
+      </div>
+      <div class="say">
+        <p data-say="В десять подключается рутина Бэ. Она уже видит первый час торгов.">В 10:00 подключается рутина B. Она уже видит первый час торгов.</p>
+        <p>Каждому кандидату три вопроса. Подтвердил ли рынок идею? Что говорит против? И чем эта акция лучше покупки всех восьми сразу?</p>
+        <p>На выходе от нуля до трёх идей. Пустой план с причиной — тоже нормальный ответ.</p>
+      </div>
+    </section>
+
+    <!-- 6 · план -->
+    <section class="scene" data-chapter="План" data-frog="bored">
+      <div class="txt">
+        <span class="kicker">Что в плане</span>
+        <h2>Одна идея&nbsp;— одна карточка</h2>
+      </div>
+      <div class="vis">
+        <div class="idea">
+          <div class="ihead" data-s="1"><b>MU</b><span class="tag ok">покупка</span><em>пример</em></div>
+          <div class="irow" data-s="1"><span>Зона входа</span><b>1 050 – 1 065</b><em>не шире 1,5%</em></div>
+          <div class="irow" data-s="2"><span>Почему</span><i>свежая новость, которой ещё нет в цене</i></div>
+          <div class="irow" data-s="2"><span>Против</span><i>самый сильный довод против</i></div>
+          <div class="irow" data-s="2"><span>Источник</span><i>новость или документ, с датой</i></div>
+          <div class="irow off" data-s="3"><span>Нет в плане</span><b>стоп, размер, плечо</b><em class="code">решает бот</em></div>
+        </div>
+      </div>
+      <div class="say">
+        <p>Идея в плане — это акция, покупать или продавать, и узкая зона цены для входа.</p>
+        <p>Рядом причина, главный довод против и источники с датами. Нужен хотя бы один настоящий источник: новость, документ, заявление или мнение аналитика.</p>
+        <p>Стопа, размера и плеча в плане нет. Это решает бот, а не ИИ.</p>
+      </div>
+    </section>
+
+    <!-- 7 · проверки -->
+    <section class="scene wide" data-chapter="Проверки" data-frog="happy">
+      <div class="txt">
+        <span class="kicker">Путь плана</span>
+        <h2>Две проверки без ИИ</h2>
+      </div>
+      <div class="vis">
+        <div class="flow f4">
+          <div class="node ai" data-s="1"><svg class="ico" aria-hidden="true"><use href="#i-doc"/></svg><b>План</b><span>от рутины B</span></div>
+          <i class="arr" data-s="1" aria-hidden="true"></i>
+          <div class="node code" data-s="1"><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg><b>Публикатор</b><span>проверка №1</span></div>
+          <i class="arr" data-s="1" aria-hidden="true"></i>
+          <div class="node" data-s="1"><svg class="ico" aria-hidden="true"><use href="#i-board"/></svg><b>Доска планов</b><span>закрытый репозиторий</span></div>
+          <i class="arr" data-s="2" aria-hidden="true"></i>
+          <div class="node code" data-s="2"><svg class="ico" aria-hidden="true"><use href="#i-bot"/></svg><b>Бот</b><span>проверка №2</span></div>
+        </div>
+        <div class="outcomes">
+          <p class="out ok" data-s="3"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>годная идея ждёт свою цену</p>
+          <p class="out bad" data-s="3"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>плохая отклонена, причина записана</p>
+        </div>
+      </div>
+      <div class="say">
+        <p>Готовый план проверяет обычный скрипт без ИИ и кладёт на доску планов, в закрытый репозиторий.</p>
+        <p>Бот забирает доску и проверяет всё ещё раз: дату, акцию, ширину зоны, свежесть источников.</p>
+        <p>Плохая идея отбрасывается с записанной причиной. Хорошая ждёт свою цену.</p>
+      </div>
+    </section>
+
+    <!-- 8 · вход -->
+    <section class="scene wide" data-chapter="Вход" data-frog="happy">
+      <div class="txt">
+        <span class="kicker">10:30–14:30 · вход</span>
+        <h2>Бот ждёт цену, а не гонится за ней</h2>
+      </div>
+      <div class="vis">
+        <svg class="chart" viewBox="0 0 640 300" role="img" aria-label="Цена опускается в зону идеи, бот входит на проверке в 12:00, ставит стоп и цель на одинаковом расстоянии">
+          <g class="zone" data-s="1">
+            <rect x="40" y="146" width="560" height="30" rx="4"/>
+            <text x="48" y="139">зона идеи</text>
+          </g>
+          <g class="scans" data-s="1">
+            <line x1="40" y1="272" x2="600" y2="272"/>
+            <circle cx="40" cy="272" r="5"/><circle cx="110" cy="272" r="5"/><circle cx="180" cy="272" r="5"/><circle cx="250" cy="272" r="5"/><circle cx="320" cy="272" r="5"/><circle cx="390" cy="272" r="5"/><circle cx="460" cy="272" r="5"/><circle cx="530" cy="272" r="5"/><circle cx="600" cy="272" r="5"/>
+            <text x="40" y="298" text-anchor="start">10:30</text><text x="250" y="298" text-anchor="middle">12:00</text><text x="600" y="298" text-anchor="end">14:30</text>
+          </g>
+          <path class="price draw" data-s="1" pathLength="1" d="M40 80 C 70 70 90 98 110 92 S 150 70 180 104 S 225 150 250 160 S 290 150 320 142 S 365 126 390 130 S 430 116 460 120 S 505 110 530 114 S 580 108 600 112"/>
+          <g class="entry" data-s="1">
+            <circle cx="250" cy="160" r="9"/>
+            <text x="262" y="196">вход, $15</text>
+          </g>
+          <g class="deadline" data-s="2">
+            <line x1="600" y1="20" x2="600" y2="262"/>
+            <text x="592" y="38" text-anchor="end">14:30 — срок входа</text>
+          </g>
+          <g class="lvl tp" data-s="3"><line x1="250" y1="100" x2="600" y2="100"/><text x="268" y="90">цель</text></g>
+          <g class="lvl sl" data-s="3"><line x1="250" y1="220" x2="600" y2="220"/><text x="268" y="244">стоп</text></g>
+          <g class="dist" data-s="4">
+            <line x1="226" y1="106" x2="226" y2="154"/><line x1="226" y1="166" x2="226" y2="214"/>
+            <path d="M220 112 L226 102 L232 112 M220 208 L226 218 L232 208"/>
+            <text x="216" y="134" text-anchor="end">шаг</text><text x="216" y="196" text-anchor="end">шаг</text>
+          </g>
+        </svg>
+        <div class="chips">
+          <span class="chip" data-s="3">$15 · плечо 3 · изолированная маржа</span>
+          <span class="chip" data-s="4">шаг: средний дневной размах, 2–8% цены</span>
+          <span class="chip" data-s="4">риск сделки: $0,30–1,20</span>
+        </div>
+      </div>
+      <div class="say">
+        <p>Каждые полчаса бот смотрит на цену. Если она в зоне идеи, он входит. Если нет, ждёт следующей проверки.</p>
+        <p data-say="Если цена не пришла до четырнадцати тридцати, идея сгорает. Гнаться за ценой бот не будет.">Если цена не пришла до 14:30, идея сгорает. Гнаться за ценой бот не будет.</p>
+        <p data-say="Размер всегда один: пятнадцать долларов. Сразу ставятся стоп и цель, оба ордера прямо на бирже.">Размер всегда один: $15. Сразу ставятся стоп и цель, оба ордера — прямо на бирже.</p>
+        <p data-say="Расстояние до них одинаковое: средний дневной размах акции, от двух до восьми процентов цены.">Расстояние до них одинаковое: средний дневной размах акции, от 2 до 8% цены.</p>
+      </div>
+    </section>
+
+    <!-- 9 · выход -->
+    <section class="scene" data-chapter="Выход" data-frog="bored">
+      <div class="txt">
+        <span class="kicker">Выход</span>
+        <h2>Три способа выйти</h2>
+      </div>
+      <div class="vis">
+        <div class="exits" data-s="1">
+          <div class="ex sl"><b>Стоп</b><span class="pct" data-s="2">14%</span><i class="bar"><i class="fill" style="--w:14%"></i></i></div>
+          <div class="ex tp"><b>Цель</b><span class="pct" data-s="2">14%</span><i class="bar"><i class="fill" style="--w:14%"></i></i></div>
+          <div class="ex tm"><b><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg> Таймер 24 ч</b><span class="pct" data-s="2">72%</span><i class="bar"><i class="fill" style="--w:72%"></i></i></div>
+        </div>
+        <p class="mini" data-s="2">Так закрывались сделки при проверке правил на истории.</p>
+        <p class="banner soft" data-s="3">Без ручных закрытий и подтягивания стопа.</p>
+      </div>
+      <div class="say">
+        <p data-say="Выходов три: стоп, цель или таймер через двадцать четыре часа.">Выходов три: стоп, цель или таймер через 24 часа.</p>
+        <p>На истории примерно семь сделок из десяти закрывал таймер. Так что это в основном ставка на направление дня.</p>
+        <p>Ручных закрытий и подтягивания стопа нет: так замер остаётся честным.</p>
+      </div>
+    </section>
+
+    <!-- 10 · защита -->
+    <section class="scene" data-chapter="Защита" data-frog="shocked">
+      <div class="txt">
+        <span class="kicker">Предохранители</span>
+        <h2>Несколько слоёв защиты</h2>
+      </div>
+      <div class="vis">
+        <ol class="layers">
+          <li class="l4" data-s="3"><b>Общий предохранитель бота</b><span>−10% за день, −20% от пика</span></li>
+          <li class="l3" data-s="2"><b>Убыток дошёл до $12</b><span>новых входов больше нет</span></li>
+          <li class="l2" data-s="1"><b>До 3 входов в день</b><span>и до 6 открытых позиций</span></li>
+          <li class="l1" data-s="1"><b>$15 на идею</b><span>стоп стоит на бирже</span></li>
+        </ol>
+        <p class="banner" data-s="4"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Любой сбой: нет плана — нет сделок.</p>
+      </div>
+      <div class="say">
+        <p>Над сделками несколько слоёв защиты. Не больше трёх входов в день и шести открытых позиций.</p>
+        <p>Если общий убыток дошёл до двенадцати долларов, новых входов больше нет.</p>
+        <p>Сверху стоит общий предохранитель всего бота.</p>
+        <p>И правило на любой сбой: нет плана, значит, нет сделок.</p>
+      </div>
+    </section>
+
+    <!-- 11 · оценка -->
+    <section class="scene" data-chapter="Оценка" data-frog="bored">
+      <div class="txt">
+        <span class="kicker">Как поймём, что работает</span>
+        <h2>Обогнать простую покупку</h2>
+      </div>
+      <div class="vis">
+        <div class="race" data-s="1">
+          <div class="lane ai"><span>Идеи ИИ</span><i class="track"><i class="run"></i></i><b>?</b></div>
+          <div class="lane base"><span>Купить все 8 акций</span><i class="track"><i class="run"></i></i><b>планка</b></div>
+        </div>
+        <p class="mini" data-s="2">Те же дни, те же правила выхода. Простая покупка в этой выборке уже давала небольшой плюс.</p>
+        <div class="miles">
+          <div class="mile" data-s="3"><b>40</b><span>сделок: если ИИ явно хуже&nbsp;— пауза и разбор</span></div>
+          <div class="mile" data-s="3"><b>120</b><span>сделок, около 8&nbsp;недель: вывод</span></div>
+        </div>
+      </div>
+      <div class="say">
+        <p>Как понять, что ИИ полезен? Его сделки сравнивают с простой покупкой всех восьми акций в те же дни и по тем же правилам.</p>
+        <p>Планка не ноль: в этой выборке простая покупка уже давала небольшой плюс.</p>
+        <p data-say="После сорока сделок первая проверка: если ИИ явно хуже, пауза и разбор. После ста двадцати сделок, это около восьми недель, вывод.">После 40 сделок — первая проверка: если ИИ явно хуже, пауза и разбор. После 120 сделок, это около 8 недель, — вывод.</p>
+      </div>
+    </section>
+
+    <!-- 12 · итоги -->
+    <section class="scene wide" data-chapter="Итоги" data-frog="sad">
+      <div class="txt">
+        <span class="kicker">Итоги · оценка автора</span>
+        <h2>Сильные и слабые стороны</h2>
+      </div>
+      <div class="vis">
+        <div class="pc">
+          <ul class="col plus" data-s="1">
+            <li><b>Роли разделены</b><span>ИИ предлагает, деньги трогает только код</span></li>
+            <li><b>Риск маленький и понятный</b><span>$15 на идею и несколько предохранителей</span></li>
+            <li><b>Честный замер</b><span>правила оценки записаны заранее</span></li>
+          </ul>
+          <ul class="col minus">
+            <li data-s="2"><b>Перевес не доказан</b><span>сама спека оценивает шанс ниже 20%</span></li>
+            <li data-s="2"><b>Мало данных</b><span>около 8 недель на вывод</span></li>
+            <li data-s="3"><b>Зависит от компьютера оператора</b><span>уснул&nbsp;— день пропущен, узнаёшь потом</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="say">
+        <p>Сильные стороны: роли разделены, риск маленький и понятный, а правила оценки записаны заранее.</p>
+        <p data-say="Слабые: перевес не доказан, сама спека оценивает шанс ниже двадцати процентов. И данных будет немного, около восьми недель.">Слабые: перевес не доказан, сама спека оценивает шанс ниже 20%. И данных будет немного, около 8 недель.</p>
+        <p>А ещё цепочка зависит от компьютера оператора. Уснул компьютер, и день пропущен, а узнаёшь об этом только потом.</p>
+      </div>
+    </section>
+
+    <!-- 13 · советы -->
+    <section class="scene" data-chapter="Советы" data-frog="happy">
+      <div class="txt">
+        <span class="kicker">Рекомендации · мнение автора</span>
+        <h2>Что стоит сделать</h2>
+      </div>
+      <div class="vis">
+        <ol class="recs">
+          <li data-s="1"><b>Уведомление, если к 10:45 нет плана</b><span>о пропуске узнаёшь сразу, а не вечером</span></li>
+          <li data-s="2"><b>Не давать компьютеру спать в часы запусков</b><span>а потом перенести рутины на сервер: черновик плана уже есть</span></li>
+          <li data-s="3"><b>Не менять правила до 120 сделок</b><span>любая правка&nbsp;— новая версия и новый эксперимент</span></li>
+        </ol>
+      </div>
+      <div class="say">
+        <p data-say="Что я бы сделал. Первое: уведомление, если к десяти сорока пяти на доске нет плана.">Что я бы сделал. Первое: уведомление, если к 10:45 на доске нет плана.</p>
+        <p>Второе: не давать компьютеру засыпать в часы запусков, а потом перенести рутины на сервер. Черновик такого плана уже есть.</p>
+        <p data-say="Третье: не менять правила до ста двадцати сделок. Любая правка, это новый эксперимент.">Третье: не менять правила до 120 сделок. Любая правка — это новый эксперимент.</p>
+      </div>
+    </section>
+
+    <!-- 14 · весь путь -->
+    <section class="scene wide" data-chapter="Весь путь" data-frog="happy">
+      <div class="txt">
+        <span class="kicker">Весь путь</span>
+        <h2>Утро, решение, сделка, вывод</h2>
+      </div>
+      <div class="vis">
+        <div class="flow f6">
+          <div class="node ai" data-s="1"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><b>Разведка</b><span>рутина A</span></div>
+          <i class="arr" data-s="1" aria-hidden="true"></i>
+          <div class="node ai" data-s="1"><svg class="ico" aria-hidden="true"><use href="#i-brain"/></svg><b>Решение</b><span>рутина B</span></div>
+          <i class="arr" data-s="1" aria-hidden="true"></i>
+          <div class="node code" data-s="1"><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg><b>Проверки</b><span>без ИИ</span></div>
+          <i class="arr" data-s="1" aria-hidden="true"></i>
+          <div class="node code" data-s="1"><svg class="ico" aria-hidden="true"><use href="#i-bot"/></svg><b>Вход</b><span>в зоне идеи</span></div>
+          <i class="arr" data-s="1" aria-hidden="true"></i>
+          <div class="node code" data-s="1"><svg class="ico" aria-hidden="true"><use href="#i-clock"/></svg><b>Выход</b><span>стоп, цель, 24 ч</span></div>
+          <i class="arr" data-s="2" aria-hidden="true"></i>
+          <div class="node" data-s="2"><svg class="ico" aria-hidden="true"><use href="#i-scale"/></svg><b>Оценка</b><span>против простой покупки</span></div>
+        </div>
+        <p class="mini fin" data-s="3">Дневник исследования торгового бота Ludobot, а не торговый сигнал и не инвестиционная рекомендация.</p>
+      </div>
+      <div class="say">
+        <p>Итак. Утром ИИ готовит идеи, бот проверяет их и торгует по жёстким правилам.</p>
+        <p>А через восемь недель станет ясно, есть ли от этого толк.</p>
+        <p>Это дневник исследования, а не инвестиционная рекомендация. Спасибо, что посмотрели.</p>
+      </div>
+    </section>
+  </div>
+  <button class="cta" id="cta" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none"/></svg><span>Включить голос</span><small>браузер разрешает звук только после клика</small></button>
+  <div class="narrator">
+    <svg class="frog" id="frog" data-emotion="happy" viewBox="-165 -300 330 320" aria-hidden="true">
+      <g class="frog-body">
+        <ellipse cx="-78" cy="-20" rx="42" ry="20" fill="#5AAE3B"/>
+        <ellipse cx="78" cy="-20" rx="42" ry="20" fill="#5AAE3B"/>
+        <ellipse cx="0" cy="-75" rx="98" ry="74" fill="#6CC24A"/>
+        <ellipse cx="0" cy="-55" rx="62" ry="46" fill="#BDE891"/>
+        <ellipse cx="-72" cy="-40" rx="24" ry="16" fill="#5AAE3B"/>
+        <ellipse class="wave" cx="72" cy="-40" rx="24" ry="16" fill="#5AAE3B"/>
+        <ellipse cx="0" cy="-157" rx="112" ry="72" fill="#6CC24A"/>
+        <circle cx="-60" cy="-213" r="44" fill="#6CC24A"/>
+        <circle cx="60" cy="-213" r="44" fill="#6CC24A"/>
+        <g data-e="bored">
+          <circle cx="-60" cy="-213" r="31" fill="#fff" stroke="#2B5E1F" stroke-width="3"/><circle cx="60" cy="-213" r="31" fill="#fff" stroke="#2B5E1F" stroke-width="3"/>
+          <circle cx="-71" cy="-205" r="12" fill="#1E1E1E"/><circle cx="49" cy="-205" r="12" fill="#1E1E1E"/>
+          <circle cx="-75" cy="-209" r="3.5" fill="#fff"/><circle cx="45" cy="-209" r="3.5" fill="#fff"/>
+          <path d="M -93 -215 A 33 33 0 0 1 -27 -215 Z" fill="#5AAE3B" stroke="#2B5E1F" stroke-width="3"/>
+          <path d="M 27 -215 A 33 33 0 0 1 93 -215 Z" fill="#5AAE3B" stroke="#2B5E1F" stroke-width="3"/>
+        </g>
+        <g data-e="happy">
+          <circle cx="-60" cy="-213" r="31" fill="#fff" stroke="#2B5E1F" stroke-width="3"/><circle cx="60" cy="-213" r="31" fill="#fff" stroke="#2B5E1F" stroke-width="3"/>
+          <circle cx="-60" cy="-210" r="13" fill="#1E1E1E"/><circle cx="60" cy="-210" r="13" fill="#1E1E1E"/>
+          <circle cx="-64" cy="-215" r="4" fill="#fff"/><circle cx="56" cy="-215" r="4" fill="#fff"/>
+        </g>
+        <g data-e="shocked">
+          <circle cx="-60" cy="-213" r="31" fill="#fff" stroke="#2B5E1F" stroke-width="3"/><circle cx="60" cy="-213" r="31" fill="#fff" stroke="#2B5E1F" stroke-width="3"/>
+          <circle cx="-60" cy="-213" r="7" fill="#1E1E1E"/><circle cx="60" cy="-213" r="7" fill="#1E1E1E"/>
+          <path class="drop" d="M 112 -205 C 104 -192 102 -186 102 -181 A 10 10 0 0 0 122 -181 C 122 -186 120 -192 112 -205 Z" fill="#7EC8F2"/>
+        </g>
+        <g data-e="sad">
+          <circle cx="-60" cy="-213" r="31" fill="#fff" stroke="#2B5E1F" stroke-width="3"/><circle cx="60" cy="-213" r="31" fill="#fff" stroke="#2B5E1F" stroke-width="3"/>
+          <circle cx="-62" cy="-203" r="12" fill="#1E1E1E"/><circle cx="58" cy="-203" r="12" fill="#1E1E1E"/>
+          <path d="M -90.5 -222.5 L -36 -234 A 32 32 0 0 0 -90.5 -222.5 Z" fill="#5AAE3B" stroke="#2B5E1F" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M 90.5 -222.5 L 36 -234 A 32 32 0 0 1 90.5 -222.5 Z" fill="#5AAE3B" stroke="#2B5E1F" stroke-width="3" stroke-linejoin="round"/>
+        </g>
+        <g class="blink"><ellipse cx="-60" cy="-213" rx="34" ry="34" fill="#5AAE3B"/><ellipse cx="60" cy="-213" rx="34" ry="34" fill="#5AAE3B"/></g>
+        <ellipse cx="-78" cy="-143" rx="17" ry="9" fill="#F4A7A0" opacity="0.75"/>
+        <ellipse cx="78" cy="-143" rx="17" ry="9" fill="#F4A7A0" opacity="0.75"/>
+        <g class="mouth">
+          <path data-e="bored" d="M -42 -135 L 42 -135" stroke="#2B5E1F" stroke-width="6" stroke-linecap="round" fill="none"/>
+          <path data-e="happy" d="M -48 -142 Q 0 -104 48 -142" stroke="#2B5E1F" stroke-width="6" stroke-linecap="round" fill="none"/>
+          <g data-e="shocked"><ellipse cx="0" cy="-128" rx="17" ry="21" fill="#2B5E1F"/><ellipse cx="0" cy="-121" rx="10" ry="8" fill="#E9707A"/></g>
+          <path data-e="sad" d="M -40 -124 Q 0 -150 40 -124" stroke="#2B5E1F" stroke-width="6" stroke-linecap="round" fill="none"/>
+        </g>
+        <g class="talk"><ellipse cx="0" cy="-132" rx="26" ry="17" fill="#2B5E1F"/><ellipse cx="0" cy="-124" rx="14" ry="6" fill="#E9707A"/></g>
+      </g>
+    </svg>
+    <p class="bubble" id="sub" aria-live="polite"></p>
+  </div>
+  <div class="controls">
+    <button id="play" type="button" aria-label="Пауза"><svg viewBox="0 0 24 24" id="playIcon" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg><span id="playTxt">Пауза</span></button>
+    <button id="prev" type="button" aria-label="Предыдущая сцена"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6h2v12H7zM10 12l8-6v12z"/></svg></button>
+    <button id="next" type="button" aria-label="Следующая сцена"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6h2v12h-2zM14 12 6 18V6z"/></svg></button>
+    <button id="sound" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none"/></svg><span id="soundTxt">Включить голос</span></button>
+    <select id="rate" aria-label="Скорость речи"><option value="0.9">0,9×</option><option value="1" selected>1×</option><option value="1.15">1,15×</option><option value="1.3">1,3×</option></select>
+    <select id="voiceSel" aria-label="Голос" hidden></select>
+    <span class="where" id="where"></span>
+  </div>
+  <p class="note-small" id="voiceNote">Голос — встроенный синтез речи вашего браузера. Ролик идёт сам, с субтитрами; звук браузер включает только после клика. Если голос звучит плохо, выберите другой в списке голосов.</p>
+  <nav class="chapters" id="chapters" aria-label="Сцены"></nav>
+  <p class="note-small">Источник: спецификация Daily Desk v1 (одобрена 06.10.2026), руководство по запуску и код стратегии. Цифры упрощены для ролика, точные правила — в <a href="../daily-desk/">подробной первой версии</a>. Сцены «Итоги» и «Советы» — оценка автора ролика. Дневник исследования торгового бота Ludobot, а не торговый сигнал и не инвестиционная рекомендация.</p>
+  <details>
+    <summary>Текст ролика</summary>
+    <div class="transcript" id="transcript"></div>
+  </details>
+  <p class="note-small"><a href="../">← Все ролики Ludobot</a></p>
+</div>
+<script>
+"use strict";
+// Player: scenes advance by the narration (browser speech) or, muted, by reading time.
+// Each narration line unlocks the visuals marked data-s="<line number>" in the current scene.
+// The subtitle shows the line as written; the voice gets speechText() of data-say (or of the line).
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = String(text); return e; };
+const prefs = {
+  get(k) { try { return localStorage.getItem("ddx2:" + k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem("ddx2:" + k, v); } catch (e) { /* storage blocked: the player works without it */ } },
+};
+
+// Speech gets plain words and . , ! ? : ; only. Quotes, dashes, brackets and slashes are what some voices
+// read out as symbol names (a network voice escapes a quote mark and then says "backslash"), so none of them
+// ever reaches the engine. The build lints the same rule; this is the second line of defence.
+function speechText(raw) {
+  return String(raw)
+    .replace(/[«»„“”"'‘’`´]/g, "")
+    .replace(/\s*[—–]\s*|\s+-\s+/g, ", ")
+    .replace(/[()[\]{}]/g, ", ")
+    .replace(/[/\\|<>_*#~^=+@&$%№×≤≥→←]/g, " ")
+    .replace(/…/g, ".")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.!?:;])/g, "$1")
+    .replace(/([,.!?:;])(\s*,)+/g, "$1")
+    .replace(/^[\s,]+|[\s,]+$/g, "");
+}
+const stage = $("#stage");
+const scenes = $$(".scene", stage);
+const LINES = scenes.map(sc => $$(".say p", sc).map(p => ({
+  t: p.textContent.trim().replace(/\s+/g, " "),
+  s: speechText(p.dataset.say || p.textContent),
+})));
+const subEl = $("#sub"), where = $("#where"), chapters = $("#chapters"), frog = $("#frog");
+const playBtn = $("#play"), playTxt = $("#playTxt"), playIcon = $("#playIcon");
+const soundBtn = $("#sound"), soundTxt = $("#soundTxt"), voiceNote = $("#voiceNote");
+const rateSel = $("#rate"), voiceSel = $("#voiceSel"), cta = $("#cta");
+
+// transcript and chapter strip are built from the same lines the narrator reads
+const transcript = $("#transcript");
+scenes.forEach((sc, i) => { transcript.append(el("h3", null, (i + 1) + ". " + sc.dataset.chapter), el("p", null, LINES[i].map(l => l.t).join(" "))); });
+scenes.forEach((sc, i) => {
+  const b = el("button"); b.type = "button";
+  const seg = el("span", "seg"); seg.append(el("i"));
+  b.append(seg, el("span", "lbl", sc.dataset.chapter));
+  b.setAttribute("aria-label", `Сцена ${i + 1}: ${sc.dataset.chapter}`);
+  b.addEventListener("click", () => start(i));
+  chapters.append(b);
+});
+const chapBtns = $$("button", chapters);
+
+// ── state ─────────────────────────────────────────────────
+let idx = 0, line = 0, playing = false, sound = false, gen = 0, timer = null, finished = false, fails = 0, ctaDismissed = false;
+let rate = Math.min(1.3, Math.max(0.9, parseFloat(prefs.get("rate")) || 1));
+
+// ── speech ────────────────────────────────────────────────
+const synth =("speechSynthesis" in window && "SpeechSynthesisUtterance" in window) ? window.speechSynthesis : null;
+const PREFERRED = /Milena|Yuri|Google|Svetlana|Dariya|Irina|Pavel|Katya|Alyona|Anna|Tatyana|Natasha/i;
+let voices = [], voice = null;
+const voiceRank = v => -((/^ru[-_]RU/i.test(v.lang) ? 2 : 0) + (PREFERRED.test(v.name) ? 3 : 0) + (/premium|enhanced|natural|neural/i.test(v.name) ? 2 : 0) + (v.localService ? 1 : 0));
+function refreshVoices() {
+  if (!synth) return;
+  voices = synth.getVoices().filter(v => /^ru/i.test(v.lang) || /russian|рус/i.test(v.name)).sort((a, b) => voiceRank(a) - voiceRank(b));
+  const saved = prefs.get("voice");
+  voice = voices.find(v => v.name === saved) || voices[0] || null;
+  voiceSel.textContent = "";
+  voices.forEach(v => { const o = document.createElement("option"); o.value = v.name; o.textContent = v.name; voiceSel.append(o); });
+  if (voice) voiceSel.value = voice.name;
+  ui();
+}
+if (synth) {
+  refreshVoices();
+  if (synth.addEventListener) synth.addEventListener("voiceschanged", refreshVoices);
+  setTimeout(refreshVoices, 600);
+}
+
+const talk = on => frog.classList.toggle("talking", !!on);
+const readTime = text => Math.max(2600, text.length * 68) / rate;
+
+function showScene(i) {
+  scenes.forEach((s, k) => { s.classList.toggle("on", k === i); if (k !== i) { s.classList.remove("run"); } });
+  const s = scenes[i];
+  $$("[data-s].in, [data-h].hot", s).forEach(e => e.classList.remove("in", "hot"));
+  s.dataset.step = "0"; s.classList.remove("run"); void s.offsetWidth; s.classList.add("run");
+  chapBtns.forEach((b, k) => { b.classList.toggle("done", k < i); b.setAttribute("aria-current", k === i ? "true" : "false"); });
+  where.textContent = `${i + 1} / ${scenes.length}`;
+  frog.dataset.emotion = s.dataset.frog || "bored";
+}
+function setStep(n) {
+  const s = scenes[idx]; s.dataset.step = String(n);
+  $$("[data-s]", s).forEach(e => e.classList.toggle("in", +e.dataset.s <= n));
+  $$("[data-h]", s).forEach(e => e.classList.toggle("hot", +e.dataset.h <= n));
+}
+function setSeg() { const n = LINES[idx].length || 1; chapBtns[idx].querySelector("i").style.width = Math.round(line / n * 100) + "%"; }
+function ui() {
+  playTxt.textContent = playing ? "Пауза" : (finished ? "Сначала" : "Смотреть");
+  playBtn.setAttribute("aria-label", playTxt.textContent);
+  playIcon.innerHTML = playing ? '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>' : '<path d="M7 5v14l12-7z"/>';
+  soundBtn.setAttribute("aria-pressed", String(sound));
+  soundTxt.textContent = sound ? "Голос включён" : "Включить голос";
+  stage.classList.toggle("paused", !playing);
+  cta.hidden = !(synth && !sound && !ctaDismissed);
+  voiceSel.hidden = !(sound && voices.length > 1);
+  rateSel.value = String(rate);
+}
+
+// ── narration ─────────────────────────────────────────────
+function chunks(text) {
+  const parts = text.match(/[^.!?…]+[.!?…]*\s*/g) || [text];
+  const out = []; let cur = "";
+  parts.forEach(p => { if (cur && (cur + p).length > 120) { out.push(cur.trim()); cur = p; } else cur += p; });
+  if (cur.trim()) out.push(cur.trim());
+  return out;
+}
+// cb(status): "ok" | "blocked" (no user activation) | "silent" (engine produced nothing) | "error"
+function speak(text, g, cb) {
+  const parts = chunks(text); let i = 0;
+  const one = () => {
+    if (g !== gen) return;
+    if (i >= parts.length) { cb("ok"); return; }
+    const t = parts[i++], u = new SpeechSynthesisUtterance(t), t0 = performance.now();
+    u.lang = voice ? voice.lang : "ru-RU"; if (voice) u.voice = voice; u.rate = rate;
+    let done = false;
+    const fin = status => {
+      if (done) return; done = true; clearTimeout(watchdog);
+      if (g !== gen) return;
+      if (status !== "ok") { cb(status); return; }
+      if (t.length > 30 && performance.now() - t0 < 300) { cb("silent"); return; }
+      one();
+    };
+    const watchdog = setTimeout(() => fin("ok"), Math.max(4000, t.length * 150 / rate + 3000));
+    u.onend = () => fin("ok");
+    u.onerror = e => { const err = e && e.error; if (err === "canceled" || err === "interrupted") return; fin(err === "not-allowed" ? "blocked" : "error"); };
+    try { synth.resume(); synth.speak(u); } catch (err) { fin("error"); }
+  };
+  one();
+}
+function stopTimers() { gen++; clearTimeout(timer); if (synth) { try { synth.cancel(); } catch (e) { /* nothing to cancel */ } } talk(false); }
+function finish() { playing = false; finished = true; talk(false); chapBtns.forEach(b => b.classList.add("done")); ui(); }
+function start(i) {
+  stopTimers(); finished = false;
+  chapBtns.forEach(b => { b.querySelector("i").style.width = ""; });
+  idx = i; line = 0; playing = true; showScene(i); ui();
+  const g = gen; timer = setTimeout(() => step(g), 420);
+}
+function step(g) {
+  if (g !== gen) return;
+  const L = LINES[idx]; setSeg();
+  if (line >= L.length) { timer = setTimeout(() => { if (g !== gen) return; idx < scenes.length - 1 ? start(idx + 1) : finish(); }, 1200); return; }
+  const cur = L[line];
+  setStep(line + 1); subEl.textContent = cur.t; talk(true);
+  const next = () => { if (g !== gen) return; talk(false); line++; timer = setTimeout(() => step(g), 450); };
+  if (!(sound && synth)) { timer = setTimeout(next, readTime(cur.t)); return; }
+  speak(cur.s, g, status => {
+    if (g !== gen) return;
+    if (status === "ok") { fails = 0; next(); return; }
+    fails++;
+    if (status === "blocked") {
+      sound = false; ctaDismissed = false; ui();
+      voiceNote.textContent = "Браузер не разрешил звук без клика. Нажмите «Включить голос»: ролик продолжится с этого места.";
+    } else if (status === "silent" || fails >= 2) {
+      sound = false; ui();
+      voiceNote.textContent = "Этот браузер не смог озвучить текст по-русски. Ролик идёт с субтитрами; другой голос можно выбрать в настройках системы.";
+    }
+    timer = setTimeout(next, readTime(cur.t));
+  });
+}
+function pause() { stopTimers(); playing = false; ui(); }
+function resume() { if (finished) { start(0); return; } playing = true; ui(); step(++gen); }
+function toggleSound() {
+  if (!synth) { voiceNote.textContent = "Этот браузер не умеет синтез речи. Ролик идёт с субтитрами."; return; }
+  ctaDismissed = true;
+  if (!voices.length) refreshVoices();
+  if (!sound && !voices.length) voiceNote.textContent = "Русский голос не найден. Пробую голос браузера по умолчанию; если звука нет, ролик продолжится с субтитрами.";
+  sound = !sound; fails = 0; prefs.set("sound", sound ? "1" : "0"); ui();
+  if (playing) { stopTimers(); step(gen); }
+}
+
+playBtn.addEventListener("click", () => (playing ? pause() : resume()));
+$("#prev").addEventListener("click", () => start(Math.max(0, idx - 1)));
+$("#next").addEventListener("click", () => start(Math.min(scenes.length - 1, idx + 1)));
+soundBtn.addEventListener("click", toggleSound);
+cta.addEventListener("click", toggleSound);
+rateSel.addEventListener("change", () => { rate = +rateSel.value || 1; prefs.set("rate", String(rate)); if (playing && sound) { stopTimers(); step(gen); } });
+voiceSel.addEventListener("change", () => { voice = voices.find(v => v.name === voiceSel.value) || voice; prefs.set("voice", voice ? voice.name : ""); if (playing && sound) { stopTimers(); step(gen); } });
+document.addEventListener("keydown", e => {
+  if (e.target.closest("button, select, summary, a, input")) return;
+  if (e.code === "Space") { e.preventDefault(); playing ? pause() : resume(); }
+  else if (e.code === "ArrowRight") start(Math.min(scenes.length - 1, idx + 1));
+  else if (e.code === "ArrowLeft") start(Math.max(0, idx - 1));
+  else if (e.code === "KeyM") toggleSound();
+});
+document.addEventListener("visibilitychange", () => { if (document.hidden && playing) pause(); });
+
+// start: autoplay with subtitles; a link like #5 opens at scene 5. Speech needs one click first.
+frog.classList.add("hello"); setTimeout(() => frog.classList.remove("hello"), 1800);
+const hashScene = parseInt((location.hash || "").slice(1), 10);
+if (prefs.get("sound") === "1" && synth) sound = true;
+ui();
+start(hashScene >= 1 && hashScene <= scenes.length ? hashScene - 1 : 0);
+
+</script>
+</body>
+</html>
